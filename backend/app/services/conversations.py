@@ -167,29 +167,24 @@ def get_conversation(conversation_id: str, user_id: int | None = None) -> dict |
 
 
 def list_conversations(limit: int = 50, user_id: int | None = None) -> list[dict]:
+    if user_id is None:
+        return []
     with _connect() as connection:
-        if user_id is not None:
-            rows = connection.execute(
-                "SELECT id, title, created_at FROM conversations WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
-                (user_id, limit),
-            ).fetchall()
-        else:
-            rows = connection.execute(
-                "SELECT id, title, created_at FROM conversations ORDER BY created_at DESC LIMIT ?",
-                (limit,),
-            ).fetchall()
+        rows = connection.execute(
+            "SELECT id, title, created_at FROM conversations WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+            (user_id, limit),
+        ).fetchall()
     return [dict(row) for row in rows]
 
 
 def get_conversations_count(user_id: int | None = None) -> int:
+    if user_id is None:
+        return 0
     with _connect() as connection:
-        if user_id is not None:
-            row = connection.execute(
-                "SELECT COUNT(*) FROM conversations WHERE user_id = ?",
-                (user_id,),
-            ).fetchone()
-        else:
-            row = connection.execute("SELECT COUNT(*) FROM conversations").fetchone()
+        row = connection.execute(
+            "SELECT COUNT(*) FROM conversations WHERE user_id = ?",
+            (user_id,),
+        ).fetchone()
     return row[0] if row else 0
 
 

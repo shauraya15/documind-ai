@@ -61,31 +61,25 @@ def _row_to_document(row: sqlite3.Row) -> Document:
 
 
 async def list_documents(user_id: int | None = None) -> DocumentListResponse:
+    if user_id is None:
+        return DocumentListResponse(total=0, documents=[])
     with _connect() as connection:
-        if user_id is not None:
-            rows = connection.execute(
-                "SELECT * FROM documents WHERE user_id = ? ORDER BY updated DESC",
-                (user_id,),
-            ).fetchall()
-        else:
-            rows = connection.execute(
-                "SELECT * FROM documents ORDER BY updated DESC"
-            ).fetchall()
+        rows = connection.execute(
+            "SELECT * FROM documents WHERE user_id = ? ORDER BY updated DESC",
+            (user_id,),
+        ).fetchall()
     docs = [_row_to_document(row) for row in rows]
     return DocumentListResponse(total=len(docs), documents=docs)
 
 
 def get_documents_snapshot(user_id: int | None = None) -> list[Document]:
+    if user_id is None:
+        return []
     with _connect() as connection:
-        if user_id is not None:
-            rows = connection.execute(
-                "SELECT * FROM documents WHERE user_id = ? ORDER BY updated DESC",
-                (user_id,),
-            ).fetchall()
-        else:
-            rows = connection.execute(
-                "SELECT * FROM documents ORDER BY updated DESC"
-            ).fetchall()
+        rows = connection.execute(
+            "SELECT * FROM documents WHERE user_id = ? ORDER BY updated DESC",
+            (user_id,),
+        ).fetchall()
     return [_row_to_document(row) for row in rows]
 
 
