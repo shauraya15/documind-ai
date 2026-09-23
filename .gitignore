@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+.venv/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Build output
+dist/
+dist-ssr/
+.output/
+.vinxi/
+.tanstack/
+.nitro/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Database / local data
+backend/data/auth.db
+
+# Deployment artifacts
+*.zip
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Wrangler / Cloudflare
+.wrangler/
+.dev.vars
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+Thumbs.db
