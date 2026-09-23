@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { login } from "@/lib/api";
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
 function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +20,7 @@ function LoginPage() {
     setSubmitting(true);
     try {
       await login(email, password);
-      window.location.assign("/");
+      await navigate({ to: "/" });
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Login failed.");
       setSubmitting(false);

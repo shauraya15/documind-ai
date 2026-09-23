@@ -3,7 +3,7 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
-  useLocation,
+  redirect,
   useRouter,
   HeadContent,
   Scripts,
@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { getCurrentUser } from "../lib/api";
+import { getCurrentUser, type AuthUser } from "../lib/api";
 
 function NotFoundComponent() {
   return (
@@ -146,6 +146,37 @@ export const Route =
       ],
     }),
 
+    beforeLoad: async ({ location }) => {
+      const publicPaths = ["/login", "/signup"];
+      const isPublic = publicPaths.includes(location.pathname);
+
+      // Only run on the client — SSR can't forward browser cookies to the
+      // separate FastAPI backend, so we skip the check and let client-side
+      // navigation handle the guard.
+      if (typeof window === "undefined") {
+        return { currentUser: null as AuthUser | null };
+      }
+
+      let currentUser: AuthUser | null = null;
+      try {
+        currentUser = await getCurrentUser();
+      } catch {
+        // Not authenticated
+      }
+
+      if (!isPublic && currentUser === null) {
+        // Protected route but not logged in → send to login
+        throw redirect({ to: "/login" });
+      }
+
+      if (isPublic && currentUser !== null) {
+        // Already logged in but visiting login/signup → send to dashboard
+        throw redirect({ to: "/" });
+      }
+
+      return { currentUser };
+    },
+
     shellComponent: RootShell,
     component: RootComponent,
     notFoundComponent: NotFoundComponent,
@@ -169,24 +200,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const location = useLocation();
-
-  const publicPaths = ["/login", "/signup"];
-
-  useEffect(() => {
-    if (publicPaths.includes(location.pathname)) {
-      return;
-    }
-
-    getCurrentUser()
-      .then((user) => {
-        console.log("AUTH CHECK SUCCESS:", user);
-      })
-      .catch((error) => {
-        console.error("AUTH CHECK FAILED:", error);
-        window.location.replace("/signup");
-      });
-  }, [location.pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>
