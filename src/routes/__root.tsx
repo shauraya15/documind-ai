@@ -184,10 +184,7 @@ function RootComponent() {
       })
       .catch((error) => {
         console.error("AUTH CHECK FAILED:", error);
-        console.error(
-          "Current path:",
-          location.pathname
-        );
+        window.location.replace("/signup");
       });
   }, [location.pathname]);
 
