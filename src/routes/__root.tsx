@@ -3,16 +3,16 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
-  redirect,
+  useLocation,
   useRouter,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { getCurrentUser, type AuthUser } from "../lib/api";
+import { getCurrentUser } from "../lib/api";
 
 function NotFoundComponent() {
   return (
@@ -146,37 +146,6 @@ export const Route =
       ],
     }),
 
-    beforeLoad: async ({ location }) => {
-      const publicPaths = ["/login", "/signup"];
-      const isPublic = publicPaths.includes(location.pathname);
-
-      // Only run on the client — SSR can't forward browser cookies to the
-      // separate FastAPI backend, so we skip the check and let client-side
-      // navigation handle the guard.
-      if (typeof window === "undefined") {
-        return { currentUser: null as AuthUser | null };
-      }
-
-      let currentUser: AuthUser | null = null;
-      try {
-        currentUser = await getCurrentUser();
-      } catch {
-        // Not authenticated
-      }
-
-      if (!isPublic && currentUser === null) {
-        // Protected route but not logged in → send to login
-        throw redirect({ to: "/login" });
-      }
-
-      if (isPublic && currentUser !== null) {
-        // Already logged in but visiting login/signup → send to dashboard
-        throw redirect({ to: "/" });
-      }
-
-      return { currentUser };
-    },
-
     shellComponent: RootShell,
     component: RootComponent,
     notFoundComponent: NotFoundComponent,
@@ -200,6 +169,36 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+
+  // "ready" starts false for protected pages so we block render until the
+  // auth check resolves — this prevents the flash of protected content.
+  const publicPaths = ["/login", "/signup"];
+  const isPublic = publicPaths.includes(location.pathname);
+  const [ready, setReady] = useState(isPublic);
+
+  useEffect(() => {
+    // Public pages need no auth check.
+    if (isPublic) {
+      setReady(true);
+      return;
+    }
+
+    // For protected pages, verify the session before rendering anything.
+    setReady(false);
+    getCurrentUser()
+      .then(() => {
+        setReady(true);
+      })
+      .catch(() => {
+        // Not authenticated — hard-redirect so the full page reloads cleanly.
+        window.location.replace("/login");
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Show nothing while the auth check is in flight on a protected page.
+  if (!ready) return null;
 
   return (
     <QueryClientProvider client={queryClient}>

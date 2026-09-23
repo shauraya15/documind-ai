@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { signup } from "../lib/api";
 
 export const Route = createFileRoute("/signup")({
@@ -7,8 +7,6 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignupPage() {
-  const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,7 +26,7 @@ function SignupPage() {
 
     try {
       await signup(email, password);
-      navigate({ to: "/" });
+      window.location.assign("/");
     } catch (err) {
       setError(
         err instanceof Error
