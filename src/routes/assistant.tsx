@@ -17,7 +17,8 @@ export const Route = createFileRoute("/assistant")({
       { title: "DocuMind Assistant — Cited Documentation Answers" },
       {
         name: "description",
-        content: "Ask DocuMind questions about product documentation and review grounded answers with source citations.",
+        content:
+          "Ask DocuMind questions about product documentation and review grounded answers with source citations.",
       },
       { property: "og:title", content: "DocuMind Assistant" },
       {
@@ -40,7 +41,10 @@ type Message = {
 
 function cleanAnswer(content?: string) {
   if (!content) return "";
-  return content.replace(/【[^】]+】/g, "").replace(/\n{3,}/g, "\n\n").trim();
+  return content
+    .replace(/【[^】]+】/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function formatTime(isoString: string): string {
@@ -117,7 +121,12 @@ function AssistantPage() {
       setConversationId(response.conversation_id);
       setMessages((current) => [
         ...current,
-        { id: `a-${Date.now()}`, role: "assistant", content: response.answer, citations: response.citations },
+        {
+          id: `a-${Date.now()}`,
+          role: "assistant",
+          content: response.answer,
+          citations: response.citations,
+        },
       ]);
       setThinking(false);
       // Refresh the history sidebar so the new conversation appears immediately
@@ -128,7 +137,7 @@ function AssistantPage() {
       setError(
         err instanceof Error
           ? err.message
-          : "The assistant is unavailable right now. Check that the backend is running and try again."
+          : "The assistant is unavailable right now. Check that the backend is running and try again.",
       );
     }
   }
@@ -161,8 +170,15 @@ function AssistantPage() {
           {/* History sidebar */}
           <aside className="max-h-32 min-w-0 overflow-y-auto rounded-lg border border-border bg-surface p-4 shadow-sm lg:max-h-none lg:overflow-y-auto">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">History</h2>
-              <Button variant="ghost" size="icon" aria-label="Start new conversation" onClick={startNewConversation}>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                History
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Start new conversation"
+                onClick={startNewConversation}
+              >
                 <Plus className="size-4" />
               </Button>
             </div>
@@ -189,7 +205,9 @@ function AssistantPage() {
                         : "border-border bg-surface-soft hover:border-primary/25",
                     )}
                   >
-                    <span className="block truncate text-sm font-medium text-foreground">{conv.title}</span>
+                    <span className="block truncate text-sm font-medium text-foreground">
+                      {conv.title}
+                    </span>
                     <span className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock3 className="size-3" />
                       {formatTime(conv.created_at)}
@@ -210,7 +228,9 @@ function AssistantPage() {
                   </div>
                   <div>
                     <h2 className="font-semibold text-foreground">DocuMind Assistant</h2>
-                    <p className="text-sm text-muted-foreground">Grounded in indexed documentation and version-aware citations.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Grounded in indexed documentation and version-aware citations.
+                    </p>
                   </div>
                 </div>
                 <span className="rounded-md border border-success/25 bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
@@ -228,28 +248,49 @@ function AssistantPage() {
               ) : messages.length === 0 ? (
                 <div className="flex min-h-[180px] items-center justify-center px-4 text-center">
                   <div>
-                    <h3 className="text-xl font-semibold tracking-tight text-foreground">Start a conversation</h3>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">Ask anything about your product documentation.</p>
+                    <h3 className="text-xl font-semibold tracking-tight text-foreground">
+                      Start a conversation
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      Ask anything about your product documentation.
+                    </p>
                   </div>
                 </div>
               ) : (
                 <>
                   {messages.map((message) => (
-                    <article key={message.id} className={cn("flex gap-3", message.role === "user" ? "justify-end" : "justify-start")}>
+                    <article
+                      key={message.id}
+                      className={cn(
+                        "flex gap-3",
+                        message.role === "user" ? "justify-end" : "justify-start",
+                      )}
+                    >
                       {message.role === "assistant" ? (
                         <div className="mt-1 flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                           <Bot className="size-4" />
                         </div>
                       ) : null}
-                      <div className={cn("max-w-3xl rounded-lg border p-4", message.role === "user" ? "border-primary/20 bg-brand-soft" : "border-border bg-surface-soft")}>
+                      <div
+                        className={cn(
+                          "max-w-3xl rounded-lg border p-4",
+                          message.role === "user"
+                            ? "border-primary/20 bg-brand-soft"
+                            : "border-border bg-surface-soft",
+                        )}
+                      >
                         <div className="prose-doc text-sm leading-7 text-foreground">
-                          {cleanAnswer(message.content).split("\n").map((line, index) => (
-                            <p key={`${message.id}-${index}`} className="mb-2 last:mb-0">
-                              {line.replaceAll("**", "")}
-                            </p>
-                          ))}
+                          {cleanAnswer(message.content)
+                            .split("\n")
+                            .map((line, index) => (
+                              <p key={`${message.id}-${index}`} className="mb-2 last:mb-0">
+                                {line.replaceAll("**", "")}
+                              </p>
+                            ))}
                         </div>
-                        {message.role === "assistant" && message.citations?.length ? <CitationList citations={message.citations} /> : null}
+                        {message.role === "assistant" && message.citations?.length ? (
+                          <CitationList citations={message.citations} />
+                        ) : null}
                       </div>
                       {message.role === "user" ? (
                         <div className="mt-1 flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
@@ -284,7 +325,9 @@ function AssistantPage() {
                   className="min-h-14 max-h-32 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
                 />
                 <div className="flex flex-wrap items-center justify-between gap-3 px-2 pb-2">
-                  <p className="text-xs text-muted-foreground">Enter to send · Shift+Enter for a new line</p>
+                  <p className="text-xs text-muted-foreground">
+                    Enter to send · Shift+Enter for a new line
+                  </p>
                   <Button onClick={() => submitQuestion()} disabled={!draft.trim() || thinking}>
                     Ask DocuMind
                     <Send className="size-4" />

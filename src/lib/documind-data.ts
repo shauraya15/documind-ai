@@ -112,7 +112,8 @@ export const documents: ProductDocument[] = [
     owner: "Solutions Engineering",
     coverage: 71,
     sections: ["Prerequisites", "Network policy", "Container install", "Verification"],
-    summary: "Deployment requirements and step-by-step installation instructions for private cloud environments.",
+    summary:
+      "Deployment requirements and step-by-step installation instructions for private cloud environments.",
   },
   {
     id: "doc-api",
@@ -126,7 +127,8 @@ export const documents: ProductDocument[] = [
     owner: "Developer Experience",
     coverage: 99,
     sections: ["Endpoints", "Error model", "Rate limits", "Webhooks"],
-    summary: "Canonical REST endpoint reference with schemas, examples, pagination, and webhook contracts.",
+    summary:
+      "Canonical REST endpoint reference with schemas, examples, pagination, and webhook contracts.",
   },
   {
     id: "doc-config",
@@ -140,7 +142,8 @@ export const documents: ProductDocument[] = [
     owner: "Product Operations",
     coverage: 92,
     sections: ["Tenant policy", "Audit retention", "Regional routing", "Feature flags"],
-    summary: "Administrative configuration for enterprise tenants, compliance retention, regions, and policy inheritance.",
+    summary:
+      "Administrative configuration for enterprise tenants, compliance retention, regions, and policy inheritance.",
   },
   {
     id: "doc-trouble",
@@ -154,7 +157,8 @@ export const documents: ProductDocument[] = [
     owner: "Customer Reliability",
     coverage: 89,
     sections: ["AUTH-401", "TLS handshake", "Proxy timeouts", "DNS checks"],
-    summary: "Diagnostic playbooks for authentication, transport, proxy, and routing issues seen in production.",
+    summary:
+      "Diagnostic playbooks for authentication, transport, proxy, and routing issues seen in production.",
   },
   {
     id: "doc-faq",
@@ -168,7 +172,8 @@ export const documents: ProductDocument[] = [
     owner: "Support Enablement",
     coverage: 54,
     sections: ["Permissions", "Billing exports", "SSO", "Data residency"],
-    summary: "Answers recurring administrator questions across account setup, access controls, and compliance workflows.",
+    summary:
+      "Answers recurring administrator questions across account setup, access controls, and compliance workflows.",
   },
   {
     id: "doc-release",
@@ -182,7 +187,8 @@ export const documents: ProductDocument[] = [
     owner: "Release Management",
     coverage: 96,
     sections: ["Breaking changes", "Authentication", "SDK updates", "Known issues"],
-    summary: "Highlights changes between 3.1 and 3.2, including auth defaults, SDK updates, and deprecations.",
+    summary:
+      "Highlights changes between 3.1 and 3.2, including auth defaults, SDK updates, and deprecations.",
   },
   {
     id: "doc-start",
@@ -196,7 +202,8 @@ export const documents: ProductDocument[] = [
     owner: "Developer Experience",
     coverage: 93,
     sections: ["First request", "Project setup", "API keys", "Sandbox data"],
-    summary: "A concise walkthrough for developers connecting to Atlas workflows for the first time.",
+    summary:
+      "A concise walkthrough for developers connecting to Atlas workflows for the first time.",
   },
   {
     id: "doc-failed",
@@ -210,7 +217,8 @@ export const documents: ProductDocument[] = [
     owner: "Migration Team",
     coverage: 12,
     sections: ["Connector setup", "Legacy auth", "Migration map"],
-    summary: "Older connector content requiring repair before it can be safely included in assistant answers.",
+    summary:
+      "Older connector content requiring repair before it can be safely included in assistant answers.",
   },
 ];
 
@@ -298,19 +306,23 @@ export const searchResults: SearchResult[] = [
 export const agentSteps = [
   {
     title: "Understanding request",
-    detail: "Detected an authentication configuration question and scoped it to Atlas API 3.2 unless another version is selected.",
+    detail:
+      "Detected an authentication configuration question and scoped it to Atlas API 3.2 unless another version is selected.",
   },
   {
     title: "Searching documentation",
-    detail: "Matched OAuth setup, troubleshooting AUTH-401, and release-note sections with high semantic overlap.",
+    detail:
+      "Matched OAuth setup, troubleshooting AUTH-401, and release-note sections with high semantic overlap.",
   },
   {
     title: "Checking relevant version",
-    detail: "Prioritized version 3.2 sources, then compared against 3.1 where the behavior changed.",
+    detail:
+      "Prioritized version 3.2 sources, then compared against 3.1 where the behavior changed.",
   },
   {
     title: "Comparing sources",
-    detail: "Resolved a conflict: release notes mention shorter token lifetime, while the auth guide includes the implementation details.",
+    detail:
+      "Resolved a conflict: release notes mention shorter token lifetime, while the auth guide includes the implementation details.",
   },
   {
     title: "Generating answer",

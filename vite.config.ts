@@ -9,12 +9,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
 
-  plugins: [
-    tanstackStart(),
-    nitro(),
-    react(),
-    tailwindcss(),
-  ],
+  plugins: [tanstackStart(), nitro(), react(), tailwindcss()],
 
   build: {
     cssMinify: "esbuild",

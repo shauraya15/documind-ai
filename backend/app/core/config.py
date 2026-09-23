@@ -64,6 +64,7 @@ class Settings:
         or str(Path(__file__).resolve().parents[2] / "data" / "auth.db")
     )
     auth_cookie_secure: bool = field(default_factory=lambda: (_env("DOCUMIND_AUTH_COOKIE_SECURE", "false") or "false").lower() == "true")
+    auth_cookie_samesite: str = field(default_factory=lambda: _env("DOCUMIND_AUTH_COOKIE_SAMESITE", "lax") or "lax")
 
 
 settings = Settings()

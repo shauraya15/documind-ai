@@ -811,13 +811,13 @@ Potential future improvements include:
 
 The system can be evaluated using documentation-focused test questions across the following dimensions:
 
-| Dimension | Description |
-|---|---|
-| **Retrieval Accuracy** | Does the system retrieve the relevant documentation? |
-| **Groundedness** | Is the generated response supported by the retrieved documentation? |
-| **Citation Accuracy** | Do the cited documents actually support the answer? |
-| **Answer Relevance** | Does the response directly address the user's question? |
-| **Failure Handling** | Does the assistant appropriately handle questions for which the documentation does not contain sufficient information? |
+| Dimension              | Description                                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Retrieval Accuracy** | Does the system retrieve the relevant documentation?                                                                   |
+| **Groundedness**       | Is the generated response supported by the retrieved documentation?                                                    |
+| **Citation Accuracy**  | Do the cited documents actually support the answer?                                                                    |
+| **Answer Relevance**   | Does the response directly address the user's question?                                                                |
+| **Failure Handling**   | Does the assistant appropriately handle questions for which the documentation does not contain sufficient information? |
 
 ---
 

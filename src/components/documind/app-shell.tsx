@@ -4,7 +4,13 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { navItems } from "@/lib/documind-data";
-import { getCurrentUser, getKnowledgeStatus, logout, type AuthUser, type KnowledgeStatusResponse } from "@/lib/api";
+import {
+  getCurrentUser,
+  getKnowledgeStatus,
+  logout,
+  type AuthUser,
+  type KnowledgeStatusResponse,
+} from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 function formatDisplayName(email: string): string {
@@ -30,12 +36,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
     void getCurrentUser()
-      .then((user) => { if (active) setCurrentUser(user); })
+      .then((user) => {
+        if (active) setCurrentUser(user);
+      })
       .catch(() => {});
     void getKnowledgeStatus()
-      .then((k) => { if (active) setKnowledge(k); })
+      .then((k) => {
+        if (active) setKnowledge(k);
+      })
       .catch(() => {});
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   const displayName = currentUser ? formatDisplayName(currentUser.email) : "User";
@@ -89,8 +101,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="absolute inset-x-4 bottom-5 rounded-lg border border-border bg-surface-soft p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <span className={`size-2 rounded-full ${knowledge?.status === "healthy" ? "bg-success" : knowledge?.status === "degraded" ? "bg-warning" : "bg-muted-foreground"}`} />
-            {knowledge?.status === "healthy" ? "Knowledge base healthy" : knowledge?.status === "degraded" ? "Knowledge base degraded" : "Knowledge base empty"}
+            <span
+              className={`size-2 rounded-full ${knowledge?.status === "healthy" ? "bg-success" : knowledge?.status === "degraded" ? "bg-warning" : "bg-muted-foreground"}`}
+            />
+            {knowledge?.status === "healthy"
+              ? "Knowledge base healthy"
+              : knowledge?.status === "degraded"
+                ? "Knowledge base degraded"
+                : "Knowledge base empty"}
           </div>
           <p className="mt-2 text-xs leading-5 text-muted-foreground">
             {knowledge
@@ -134,7 +152,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </div>
                 <div className="text-sm leading-4">
                   <p className="font-medium text-foreground">{displayName}</p>
-                  <p className="text-xs text-muted-foreground">{currentUser?.email ?? "Docs Operations"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {currentUser?.email ?? "Docs Operations"}
+                  </p>
                 </div>
               </div>
               <Button variant="ghost" size="icon" aria-label="Log out" onClick={handleLogout}>
@@ -142,7 +162,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Button>
             </div>
           </div>
-          <nav className="flex gap-2 overflow-x-auto border-t border-border px-4 py-2 xl:hidden" aria-label="Mobile navigation">
+          <nav
+            className="flex gap-2 overflow-x-auto border-t border-border px-4 py-2 xl:hidden"
+            aria-label="Mobile navigation"
+          >
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = pathname === item.to;
@@ -152,7 +175,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to={item.to}
                   className={cn(
                     "flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium",
-                    active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-surface-soft",
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-surface-soft",
                   )}
                 >
                   <Icon className="size-4" />

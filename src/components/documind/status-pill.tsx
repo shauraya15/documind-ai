@@ -18,9 +18,11 @@ const styles: Record<string, string> = {
 };
 
 function IconForStatus({ status }: { status: StatusKind }) {
-  if (status === "Ready" || status === "Indexed" || status === "Healthy") return <CheckCircle2 className="size-3.5" />;
+  if (status === "Ready" || status === "Indexed" || status === "Healthy")
+    return <CheckCircle2 className="size-3.5" />;
   if (status === "Failed" || status === "Needs review") return <AlertCircle className="size-3.5" />;
-  if (status === "Indexing" || status === "Processing") return <Loader2 className="size-3.5 animate-spin" />;
+  if (status === "Indexing" || status === "Processing")
+    return <Loader2 className="size-3.5 animate-spin" />;
   return <Clock3 className="size-3.5" />;
 }
 

@@ -5,7 +5,9 @@ import type { Citation } from "@/lib/documind-data";
 export function CitationList({ citations }: { citations: Citation[] }) {
   return (
     <div className="mt-4 space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sources</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Sources
+      </p>
       <div className="grid gap-2 md:grid-cols-3">
         {citations.map((citation, index) => (
           <details
@@ -17,10 +19,13 @@ export function CitationList({ citations }: { citations: Citation[] }) {
                 <FileText className="mt-0.5 size-4 shrink-0 text-primary" />
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold text-foreground">
-                    {citation.document.startsWith("http") ? `Source ${index + 1}` : citation.document}
+                    {citation.document.startsWith("http")
+                      ? `Source ${index + 1}`
+                      : citation.document}
                   </span>
                   <span className="block truncate text-xs text-muted-foreground">
-                    {citation.product || "Documentation"}{citation.version ? ` · v${citation.version}` : ""}
+                    {citation.product || "Documentation"}
+                    {citation.version ? ` · v${citation.version}` : ""}
                   </span>
                 </span>
               </span>
@@ -29,9 +34,16 @@ export function CitationList({ citations }: { citations: Citation[] }) {
             <div className="mt-2 border-t border-border pt-2 text-xs leading-5 text-muted-foreground">
               <p className="font-medium text-foreground">{citation.section}</p>
               <p className="mt-2">{citation.excerpt}</p>
-              <p className="mt-2 font-medium text-primary">{citation.confidence}% source confidence</p>
+              <p className="mt-2 font-medium text-primary">
+                {citation.confidence}% source confidence
+              </p>
               {citation.page.startsWith("http") ? (
-                <a className="mt-2 block truncate font-medium text-primary hover:underline" href={citation.page} target="_blank" rel="noreferrer">
+                <a
+                  className="mt-2 block truncate font-medium text-primary hover:underline"
+                  href={citation.page}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   Open source
                 </a>
               ) : null}

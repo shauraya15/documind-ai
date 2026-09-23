@@ -53,7 +53,6 @@ export type DocumentConfigResponse = {
 const apiBaseUrl = import.meta.env["VITE_API_BASE_URL"] || "http://127.0.0.1:8001";
 
 async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
-
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...options,
     credentials: "include",
@@ -64,7 +63,7 @@ async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => null) as { detail?: string } | null;
+    const errorBody = (await response.json().catch(() => null)) as { detail?: string } | null;
     throw new Error(errorBody?.detail ?? `API request failed with status ${response.status}.`);
   }
 
@@ -132,13 +131,20 @@ export function createDocument(request: {
 }
 
 export function searchDocuments(query: string, product?: string, version?: string) {
-  return apiRequest<{ query: string; total: number; results: Array<Omit<SearchResult, "matchedTerms"> & { matched_terms: string[] }> }>("/api/search", {
+  return apiRequest<{
+    query: string;
+    total: number;
+    results: Array<Omit<SearchResult, "matchedTerms"> & { matched_terms: string[] }>;
+  }>("/api/search", {
     method: "POST",
     body: JSON.stringify({ query, product: product || null, version: version || null, limit: 20 }),
   }).then((response) => ({
     query: response.query,
     total: response.total,
-    results: response.results.map(({ matched_terms, ...result }) => ({ ...result, matchedTerms: matched_terms })),
+    results: response.results.map(({ matched_terms, ...result }) => ({
+      ...result,
+      matchedTerms: matched_terms,
+    })),
   }));
 }
 
@@ -183,5 +189,7 @@ export function listConversations() {
 }
 
 export function getConversation(conversationId: string) {
-  return apiRequest<ConversationDetailResponse>(`/api/conversations/${encodeURIComponent(conversationId)}`);
+  return apiRequest<ConversationDetailResponse>(
+    `/api/conversations/${encodeURIComponent(conversationId)}`,
+  );
 }
