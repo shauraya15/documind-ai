@@ -1,24 +1,52 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertCircle, AlertTriangle, CheckCircle2, Eye, FileText, Loader2, Search, Upload } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  Eye,
+  FileText,
+  Loader2,
+  Search,
+  Upload,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AppShell } from "@/components/documind/app-shell";
 import { DocumentDetailDialog } from "@/components/documind/document-detail-dialog";
 import { PageHeading } from "@/components/documind/page-heading";
 import { StatusPill } from "@/components/documind/status-pill";
-import { getDocumentConfig, listDocuments, uploadDocument, type DocumentConfigResponse } from "@/lib/api";
+import {
+  getDocumentConfig,
+  listDocuments,
+  uploadDocument,
+  type DocumentConfigResponse,
+} from "@/lib/api";
 import type { ProductDocument } from "@/lib/documind-data";
 
 export const Route = createFileRoute("/documents")({
   head: () => ({
     meta: [
       { title: "DocuMind Documents — Product Documentation Library" },
-      { name: "description", content: "Browse, search, filter, and inspect mock product documentation metadata in DocuMind." },
+      {
+        name: "description",
+        content:
+          "Browse, search, filter, and inspect mock product documentation metadata in DocuMind.",
+      },
       { property: "og:title", content: "DocuMind Documentation Library" },
-      { property: "og:description", content: "Explore product manuals, API references, FAQs, release notes, and indexing status." },
+      {
+        property: "og:description",
+        content:
+          "Explore product manuals, API references, FAQs, release notes, and indexing status.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -92,7 +120,11 @@ function DocumentsPage() {
           const updated = response.documents.find((item) => item.id === document.id);
           if (updated) {
             setUploadSuccess(`${updated.title}: ${updated.status}`);
-            if (updated.status === "Ready" || updated.status === "Indexed" || updated.status === "Failed") {
+            if (
+              updated.status === "Ready" ||
+              updated.status === "Indexed" ||
+              updated.status === "Failed"
+            ) {
               window.clearInterval(pollInterval);
             }
           }
@@ -128,7 +160,9 @@ function DocumentsPage() {
   const filteredDocuments = useMemo(
     () =>
       documents.filter((document) => {
-        const matchesQuery = `${document.title} ${document.summary} ${document.sections.join(" ")}`.toLowerCase().includes(query.toLowerCase());
+        const matchesQuery = `${document.title} ${document.summary} ${document.sections.join(" ")}`
+          .toLowerCase()
+          .includes(query.toLowerCase());
         return (
           matchesQuery &&
           (product === allValue || document.product === product) &&
@@ -184,8 +218,9 @@ function DocumentsPage() {
             <div>
               <p className="font-semibold text-sm">Azure Document Ingestion Not Configured</p>
               <p className="mt-1 text-xs opacity-90">
-                Missing required environment variables in backend/.env: {ingestionConfig.missing_variables.join(", ")}.
-                Document upload requires Azure Blob Storage and AI Search indexer configuration.
+                Missing required environment variables in backend/.env:{" "}
+                {ingestionConfig.missing_variables.join(", ")}. Document upload requires Azure Blob
+                Storage and AI Search indexer configuration.
               </p>
             </div>
           </div>
@@ -215,41 +250,87 @@ function DocumentsPage() {
           <div className="grid gap-3 lg:grid-cols-[1.6fr_repeat(4,1fr)]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search documents, sections, or topics" className="pl-9" />
+              <Input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search documents, sections, or topics"
+                className="pl-9"
+              />
             </div>
-            <FilterSelect label="Product" value={product} values={products} onValueChange={setProduct} />
-            <FilterSelect label="Version" value={version} values={versions} onValueChange={setVersion} />
+            <FilterSelect
+              label="Product"
+              value={product}
+              values={products}
+              onValueChange={setProduct}
+            />
+            <FilterSelect
+              label="Version"
+              value={version}
+              values={versions}
+              onValueChange={setVersion}
+            />
             <FilterSelect label="Type" value={type} values={types} onValueChange={setType} />
-            <FilterSelect label="Status" value={status} values={statuses} onValueChange={setStatus} />
+            <FilterSelect
+              label="Status"
+              value={status}
+              values={statuses}
+              onValueChange={setStatus}
+            />
           </div>
         </section>
 
         <section className="grid gap-3">
-          {loading ? <p className="rounded-lg border border-border bg-surface p-6 text-sm text-muted-foreground">Loading documents...</p> : null}
-          {!loading && error ? <p className="rounded-lg border border-destructive/25 bg-destructive/5 p-6 text-sm text-destructive">{error}</p> : null}
-          {!loading && !error && filteredDocuments.length === 0 ? <p className="rounded-lg border border-border bg-surface p-6 text-sm text-muted-foreground">No documents match the current filters.</p> : null}
+          {loading ? (
+            <p className="rounded-lg border border-border bg-surface p-6 text-sm text-muted-foreground">
+              Loading documents...
+            </p>
+          ) : null}
+          {!loading && error ? (
+            <p className="rounded-lg border border-destructive/25 bg-destructive/5 p-6 text-sm text-destructive">
+              {error}
+            </p>
+          ) : null}
+          {!loading && !error && filteredDocuments.length === 0 ? (
+            <p className="rounded-lg border border-border bg-surface p-6 text-sm text-muted-foreground">
+              No documents match the current filters.
+            </p>
+          ) : null}
 
           {filteredDocuments.map((document) => {
-            const cleanProduct = document.product === "Uploaded documentation"
-              ? document.title.replace(/^[0-9]+[\.\-_ ]*/, "").replace(/\.[^/.]+$/, "") || "Documentation"
-              : document.product;
+            const cleanProduct =
+              document.product === "Uploaded documentation"
+                ? document.title.replace(/^[0-9]+[.\-_ ]*/, "").replace(/\.[^/.]+$/, "") ||
+                  "Documentation"
+                : document.product;
             const cleanVersion = document.version === "Latest" ? "1.0" : document.version;
             const pagesDisplay = document.pages > 0 ? String(document.pages) : "—";
             const coverageDisplay = document.coverage > 0 ? `${document.coverage}%` : "Unavailable";
 
             return (
-              <article key={document.id} className="rounded-lg border border-border bg-surface p-5 shadow-sm transition-colors hover:border-primary/25">
+              <article
+                key={document.id}
+                className="rounded-lg border border-border bg-surface p-5 shadow-sm transition-colors hover:border-primary/25"
+              >
                 <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <StatusPill status={document.status} />
-                      <span className="rounded-md bg-surface-soft px-2 py-1 text-xs font-medium text-muted-foreground">{document.type}</span>
+                      <span className="rounded-md bg-surface-soft px-2 py-1 text-xs font-medium text-muted-foreground">
+                        {document.type}
+                      </span>
                     </div>
-                    <h2 className="mt-3 text-xl font-semibold tracking-tight text-foreground">{document.title}</h2>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{document.summary}</p>
+                    <h2 className="mt-3 text-xl font-semibold tracking-tight text-foreground">
+                      {document.title}
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {document.summary}
+                    </p>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {document.sections.slice(0, 4).map((section) => (
-                        <span key={section} className="rounded-md border border-border bg-surface-soft px-2.5 py-1 text-xs text-muted-foreground">
+                        <span
+                          key={section}
+                          className="rounded-md border border-border bg-surface-soft px-2.5 py-1 text-xs text-muted-foreground"
+                        >
                           {section}
                         </span>
                       ))}
@@ -277,13 +358,26 @@ function DocumentsPage() {
           })}
         </section>
 
-        <DocumentDetailDialog document={selected} onOpenChange={(open) => !open && setSelected(undefined)} />
+        <DocumentDetailDialog
+          document={selected}
+          onOpenChange={(open) => !open && setSelected(undefined)}
+        />
       </div>
     </AppShell>
   );
 }
 
-function FilterSelect({ label, value, values, onValueChange }: { label: string; value: string; values: string[]; onValueChange: (value: string) => void }) {
+function FilterSelect({
+  label,
+  value,
+  values,
+  onValueChange,
+}: {
+  label: string;
+  value: string;
+  values: string[];
+  onValueChange: (value: string) => void;
+}) {
   return (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger aria-label={label}>

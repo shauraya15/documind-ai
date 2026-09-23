@@ -1,6 +1,12 @@
 import { BookOpen, FileText, Layers3 } from "lucide-react";
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import type { ProductDocument } from "@/lib/documind-data";
 import { StatusPill } from "./status-pill";
@@ -29,12 +35,17 @@ export function DocumentDetailDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   if (!document) {
-    return <Dialog open={false} onOpenChange={onOpenChange}><DialogContent className="hidden" /></Dialog>;
+    return (
+      <Dialog open={false} onOpenChange={onOpenChange}>
+        <DialogContent className="hidden" />
+      </Dialog>
+    );
   }
 
-  const cleanProduct = document.product === "Uploaded documentation"
-    ? document.title.replace(/^[0-9]+[\.\-_ ]*/, "").replace(/\.[^/.]+$/, "") || "Documentation"
-    : document.product;
+  const cleanProduct =
+    document.product === "Uploaded documentation"
+      ? document.title.replace(/^[0-9]+[.\-_ ]*/, "").replace(/\.[^/.]+$/, "") || "Documentation"
+      : document.product;
   const cleanVersion = document.version === "Latest" ? "1.0" : document.version;
   const pagesDisplay = document.pages > 0 ? String(document.pages) : "—";
   const coverageDisplay = document.coverage > 0 ? `${document.coverage}%` : "Unavailable";
@@ -50,7 +61,9 @@ export function DocumentDetailDialog({
                 {cleanProduct} · v{cleanVersion}
               </span>
             </div>
-            <DialogTitle className="text-2xl tracking-tight text-foreground">{document.title}</DialogTitle>
+            <DialogTitle className="text-2xl tracking-tight text-foreground">
+              {document.title}
+            </DialogTitle>
             <DialogDescription className="leading-6">{document.summary}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-5 p-6 md:grid-cols-[1fr_0.8fr]">
@@ -58,7 +71,10 @@ export function DocumentDetailDialog({
               <p className="text-sm font-semibold text-foreground">Indexed sections</p>
               <div className="mt-3 grid gap-2">
                 {document.sections.map((section) => (
-                  <div key={section} className="flex items-center gap-2 rounded-md border border-border bg-surface-soft px-3 py-2 text-sm">
+                  <div
+                    key={section}
+                    className="flex items-center gap-2 rounded-md border border-border bg-surface-soft px-3 py-2 text-sm"
+                  >
                     <BookOpen className="size-4 text-primary" />
                     {section}
                   </div>
@@ -82,7 +98,9 @@ export function DocumentDetailDialog({
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-muted-foreground">Updated</dt>
-                  <dd className="font-medium text-foreground">{formatFriendlyDate(document.updated)}</dd>
+                  <dd className="font-medium text-foreground">
+                    {formatFriendlyDate(document.updated)}
+                  </dd>
                 </div>
               </dl>
               <div className="mt-5">
@@ -96,12 +114,15 @@ export function DocumentDetailDialog({
                 {document.coverage > 0 ? (
                   <Progress value={document.coverage} className="mt-3 bg-muted" />
                 ) : (
-                  <p className="mt-2 text-xs text-muted-foreground">Coverage computation not available for this document.</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Coverage computation not available for this document.
+                  </p>
                 )}
               </div>
               <div className="mt-5 rounded-md border border-border bg-background p-3 text-xs leading-5 text-muted-foreground">
                 <FileText className="mb-2 size-4 text-primary" />
-                Ready for FastAPI-backed document preview, reprocessing, and source chunk inspection.
+                Ready for FastAPI-backed document preview, reprocessing, and source chunk
+                inspection.
               </div>
             </div>
           </div>

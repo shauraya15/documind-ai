@@ -1,5 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Bot, CheckCircle2, Clock3, FileSearch, FileText, FolderOpen, Search, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  Clock3,
+  FileSearch,
+  FileText,
+  FolderOpen,
+  Search,
+  ShieldCheck,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -7,7 +17,12 @@ import { AppShell } from "@/components/documind/app-shell";
 import { Metric } from "@/components/documind/metric";
 import { PageHeading } from "@/components/documind/page-heading";
 import { StatusPill } from "@/components/documind/status-pill";
-import { getKnowledgeStatus, listConversations, listDocuments, type ConversationSummary } from "@/lib/api";
+import {
+  getKnowledgeStatus,
+  listConversations,
+  listDocuments,
+  type ConversationSummary,
+} from "@/lib/api";
 import { type ProductDocument } from "@/lib/documind-data";
 
 export const Route = createFileRoute("/")({
@@ -16,12 +31,14 @@ export const Route = createFileRoute("/")({
       { title: "DocuMind Dashboard — Documentation Knowledge Overview" },
       {
         name: "description",
-        content: "Monitor DocuMind documentation coverage, indexing health, recent questions, and knowledge-base activity.",
+        content:
+          "Monitor DocuMind documentation coverage, indexing health, recent questions, and knowledge-base activity.",
       },
       { property: "og:title", content: "DocuMind Dashboard" },
       {
         property: "og:description",
-        content: "A clean overview of documentation knowledge health and recent product-doc activity.",
+        content:
+          "A clean overview of documentation knowledge health and recent product-doc activity.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -64,28 +81,30 @@ function formatTimeAgo(isoString: string): string {
 
 function getCleanProduct(doc: ProductDocument): string {
   if (doc.product === "Uploaded documentation") {
-    return doc.title.replace(/^[0-9]+[\.\-_ ]*/, "").replace(/\.[^/.]+$/, "") || "Documentation";
+    return doc.title.replace(/^[0-9]+[.\-_ ]*/, "").replace(/\.[^/.]+$/, "") || "Documentation";
   }
   return doc.product;
 }
 
 function DashboardPage() {
   const [documents, setDocuments] = useState<ProductDocument[]>([]);
-  const [knowledge, setKnowledge] = useState<{ coverage: number; indexed_documents: number; status: string }>();
+  const [knowledge, setKnowledge] = useState<{
+    coverage: number;
+    indexed_documents: number;
+    status: string;
+  }>();
   const [recentConversations, setRecentConversations] = useState<ConversationSummary[]>([]);
   const [questionCount, setQuestionCount] = useState<number | null>(null);
 
   const fetchAll = useCallback(() => {
-    void Promise.all([
-      listDocuments(),
-      getKnowledgeStatus(),
-      listConversations(),
-    ]).then(([docRes, knowledgeRes, convRes]) => {
-      setDocuments(docRes.documents);
-      setKnowledge(knowledgeRes);
-      setQuestionCount(convRes.total);
-      setRecentConversations(convRes.conversations || []);
-    }).catch(() => {});
+    void Promise.all([listDocuments(), getKnowledgeStatus(), listConversations()])
+      .then(([docRes, knowledgeRes, convRes]) => {
+        setDocuments(docRes.documents);
+        setKnowledge(knowledgeRes);
+        setQuestionCount(convRes.total);
+        setRecentConversations(convRes.conversations || []);
+      })
+      .catch(() => {});
   }, []);
 
   // Fetch on mount
@@ -118,11 +137,12 @@ function DashboardPage() {
   })();
 
   const questionValue = questionCount === null ? "…" : String(questionCount);
-  const questionDetail = questionCount === null
-    ? "Loading…"
-    : questionCount === 0
-      ? "No questions asked yet."
-      : `${questionCount} question${questionCount !== 1 ? "s" : ""} asked across all conversations.`;
+  const questionDetail =
+    questionCount === null
+      ? "Loading…"
+      : questionCount === 0
+        ? "No questions asked yet."
+        : `${questionCount} question${questionCount !== 1 ? "s" : ""} asked across all conversations.`;
 
   // Real live activity derived from documents and conversations
   const liveActivities: Array<{ icon: typeof FolderOpen; title: string; time: string }> = [];
@@ -185,14 +205,20 @@ function DashboardPage() {
           <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-semibold tracking-tight text-foreground">Knowledge base status</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Live document and indexing status from the backend.</p>
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                  Knowledge base status
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Live document and indexing status from the backend.
+                </p>
               </div>
               <StatusPill status={knowledge?.status === "healthy" ? "Healthy" : "Needs review"} />
             </div>
             <div className="mt-6 space-y-4">
               {documents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No documents indexed yet. Upload a document to get started.</p>
+                <p className="text-sm text-muted-foreground">
+                  No documents indexed yet. Upload a document to get started.
+                </p>
               ) : (
                 documents.slice(0, 5).map((document) => {
                   const productClean = getCleanProduct(document);
@@ -210,7 +236,9 @@ function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         {document.coverage > 0 ? (
-                          <span className="text-sm font-medium text-muted-foreground">{document.coverage}%</span>
+                          <span className="text-sm font-medium text-muted-foreground">
+                            {document.coverage}%
+                          </span>
                         ) : (
                           <span className="text-sm font-medium text-muted-foreground">—</span>
                         )}
@@ -227,7 +255,9 @@ function DashboardPage() {
             {/* Recent questions from the backend */}
             <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold tracking-tight text-foreground">Recent questions</h2>
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                  Recent questions
+                </h2>
                 <Link to="/assistant" className="text-xs font-medium text-primary hover:underline">
                   View all in Assistant →
                 </Link>
@@ -253,7 +283,9 @@ function DashboardPage() {
                         <Search className="mt-1 size-3.5 shrink-0 text-primary" />
                         <span className="truncate text-sm text-foreground">{conv.title}</span>
                       </div>
-                      <span className="shrink-0 text-xs text-muted-foreground">{formatTimeAgo(conv.created_at)}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {formatTimeAgo(conv.created_at)}
+                      </span>
                     </Link>
                   ))
                 )}
@@ -262,7 +294,9 @@ function DashboardPage() {
 
             {/* Real Documentation activity */}
             <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">Documentation activity</h2>
+              <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                Documentation activity
+              </h2>
               <div className="mt-5 space-y-4">
                 {liveActivities.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No recent activity recorded yet.</p>
@@ -290,23 +324,34 @@ function DashboardPage() {
         <section className="rounded-lg border border-border bg-surface p-6 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">Recently added documents</h2>
-              <p className="mt-1 text-sm text-muted-foreground">New and updated sources moving into the knowledge system.</p>
+              <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                Recently added documents
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                New and updated sources moving into the knowledge system.
+              </p>
             </div>
             <ShieldCheck className="size-5 text-primary" />
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-3">
             {documents.length === 0 ? (
-              <p className="text-sm text-muted-foreground col-span-3">No documents have been added yet.</p>
+              <p className="text-sm text-muted-foreground col-span-3">
+                No documents have been added yet.
+              </p>
             ) : (
               documents.slice(0, 3).map((document) => {
                 const productClean = getCleanProduct(document);
                 const versionClean = document.version === "Latest" ? "1.0" : document.version;
                 return (
-                  <div key={document.id} className="rounded-lg border border-border bg-surface-soft p-4">
+                  <div
+                    key={document.id}
+                    className="rounded-lg border border-border bg-surface-soft p-4"
+                  >
                     <StatusPill status={document.status} />
                     <p className="mt-4 font-semibold text-foreground">{document.title}</p>
-                    <p className="mt-2 text-sm text-muted-foreground">{productClean} · v{versionClean}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {productClean} · v{versionClean}
+                    </p>
                     <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock3 className="size-3.5" />
                       {formatFriendlyDate(document.updated)}

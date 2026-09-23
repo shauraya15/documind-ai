@@ -1,5 +1,7 @@
 import asyncio
+import base64
 import re
+import urllib.parse
 from dataclasses import dataclass
 from typing import Any, Callable, Protocol
 from uuid import uuid4
@@ -154,9 +156,55 @@ class FoundryAgentClient:
         return ""
 
     @staticmethod
+    def _parse_source_details(url: str, raw_title: str | None) -> tuple[str, str, str]:
+        doc_name = ""
+        product = "Documentation"
+
+        # Azure AI Search chunk keys encode the source blob URL in base64: ..._<base64>_pages_<num>...
+        b64_match = re.search(r"_([a-zA-Z0-9+/=]{16,})_pages_", url)
+        if b64_match:
+            b64 = b64_match.group(1)
+            # Azure index keys may append a page/chunk digit before _pages_; try trimming up to 3 chars
+            for strip_len in range(4):
+                cand = b64 if strip_len == 0 else b64[:-strip_len]
+                pad = (4 - len(cand) % 4) % 4
+                try:
+                    decoded = base64.b64decode(cand + "=" * pad).decode("utf-8", errors="ignore")
+                    if "http" in decoded:
+                        clean_url = re.sub(r"\d+$", "", decoded)
+                        parsed_path = urllib.parse.unquote(clean_url.split("/")[-1])
+                        if parsed_path:
+                            doc_name = parsed_path
+                        parts = clean_url.split("/")
+                        if len(parts) > 4:
+                            folder = parts[-2]
+                            if folder and folder != "product-docs":
+                                product = folder.replace("-", " ").replace("_", " ").title()
+                        break
+                except Exception:
+                    pass
+
+        # If not an Azure Search chunk key, inspect path filename
+        if not doc_name and url:
+            path = url.split("?")[0].split("#")[0]
+            unquoted = urllib.parse.unquote(path.split("/")[-1])
+            if unquoted and not unquoted.startswith("docs") and "." in unquoted:
+                doc_name = unquoted
+
+        # Use raw title if meaningful
+        if not doc_name and raw_title and not raw_title.startswith("http"):
+            doc_name = raw_title
+
+        if not doc_name:
+            doc_name = "Documentation source"
+
+        canonical_key = doc_name.lower().strip()
+        return doc_name, product, canonical_key
+
+    @staticmethod
     def _extract_citations(response: Any) -> list[Citation]:
         citations: list[Citation] = []
-        seen_sources: set[str] = set()
+        seen_keys: set[str] = set()
         for item in getattr(response, "output", []) or []:
             for content in getattr(item, "content", []) or []:
                 for annotation in getattr(content, "annotations", []) or []:
@@ -164,34 +212,26 @@ class FoundryAgentClient:
                     if annotation_type not in {"url_citation", "file_citation"}:
                         continue
                     url = getattr(annotation, "url", None) or getattr(annotation, "file_id", "")
-                    source_key = FoundryAgentClient._canonical_source(url)
-                    if source_key in seen_sources:
+                    raw_title = getattr(annotation, "title", None) or getattr(annotation, "filename", None)
+
+                    doc_name, product, canonical_key = FoundryAgentClient._parse_source_details(url, raw_title)
+                    if canonical_key in seen_keys:
                         continue
-                    seen_sources.add(source_key)
-                    title = getattr(annotation, "title", None) or getattr(annotation, "filename", None) or "Foundry source"
-                    if isinstance(title, str) and title.startswith("http"):
-                        title = "Documentation source"
+                    seen_keys.add(canonical_key)
+
                     citations.append(
                         Citation(
                             id=f"foundry-citation-{len(citations) + 1}",
-                            document=title,
-                            section="Foundry Agent source",
-                            product="",
-                            version="",
+                            document=doc_name,
+                            section=f"{product} source" if product != "Documentation" else "Knowledge base source",
+                            product=product,
+                            version="1.0",
                             page=url or "source",
                             confidence=100,
-                            excerpt="Source returned by the DocuMind Foundry agent.",
+                            excerpt=f"Referenced from {doc_name} in your documentation knowledge base.",
                         )
                     )
         return citations
-
-    @staticmethod
-    def _canonical_source(source: str) -> str:
-        if not source:
-            return "source"
-        path, _, query = source.partition("?")
-        path = re.sub(r"_\d+$", "", path)
-        return f"{path}?{query}" if query else path
 
 
 class PlaceholderFoundryIntegration(FoundryAgentClient):
