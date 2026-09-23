@@ -38,7 +38,8 @@ type Message = {
   citations?: Citation[];
 };
 
-function cleanAnswer(content: string) {
+function cleanAnswer(content?: string) {
+  if (!content) return "";
   return content.replace(/【[^】]+】/g, "").replace(/\n{3,}/g, "\n\n").trim();
 }
 
@@ -121,9 +122,14 @@ function AssistantPage() {
       setThinking(false);
       // Refresh the history sidebar so the new conversation appears immediately
       refreshHistory();
-    } catch {
+    } catch (err) {
+      console.error("Assistant chat error:", err);
       setThinking(false);
-      setError("The assistant is unavailable right now. Check that the backend is running and try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "The assistant is unavailable right now. Check that the backend is running and try again."
+      );
     }
   }
 
