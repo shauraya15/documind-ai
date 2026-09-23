@@ -29,14 +29,26 @@ def initialize_conversations_table() -> None:
             );
             """
         )
-        # Migrate existing table if 'messages' column does not exist
+        # Migrate: add messages column if not present
         try:
             connection.execute("ALTER TABLE conversations ADD COLUMN messages TEXT NOT NULL DEFAULT '[]'")
         except sqlite3.OperationalError:
             pass
+        # Migrate: add user_id column if not present
+        try:
+            connection.execute("ALTER TABLE conversations ADD COLUMN user_id INTEGER")
+        except sqlite3.OperationalError:
+            pass
 
 
-def save_conversation(conversation_id: str, question: str, answer: str, citations: list, parent_id: str | None = None) -> dict:
+def save_conversation(
+    conversation_id: str,
+    question: str,
+    answer: str,
+    citations: list,
+    parent_id: str | None = None,
+    user_id: int | None = None,
+) -> dict:
     """Persist a Q&A exchange. If parent_id exists, append to existing conversation messages."""
     created_at = datetime.now(UTC).isoformat()
     clean_citations = citations if isinstance(citations, list) else []
@@ -69,7 +81,6 @@ def save_conversation(conversation_id: str, question: str, answer: str, citation
             except Exception:
                 existing_messages = []
 
-            # Append new turn
             turn_idx = len(existing_messages) // 2 + 1
             existing_messages.append({"id": f"u-{target_id}-{turn_idx}", "role": "user", "content": question})
             existing_messages.append({"id": f"a-{target_id}-{turn_idx}", "role": "assistant", "content": answer, "citations": clean_citations})
@@ -91,28 +102,35 @@ def save_conversation(conversation_id: str, question: str, answer: str, citation
         ]
         connection.execute(
             """
-            INSERT INTO conversations (id, title, question, answer, citations, created_at, messages)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO conversations (id, title, question, answer, citations, created_at, messages, user_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 title = excluded.title,
                 question = excluded.question,
                 answer = excluded.answer,
                 citations = excluded.citations,
                 created_at = excluded.created_at,
-                messages = excluded.messages
+                messages = excluded.messages,
+                user_id = excluded.user_id
             """,
-            (target_id, title, question, answer, json.dumps(clean_citations), created_at, json.dumps(new_messages)),
+            (target_id, title, question, answer, json.dumps(clean_citations), created_at, json.dumps(new_messages), user_id),
         )
 
     return {"id": target_id, "title": title, "created_at": created_at}
 
 
-def get_conversation(conversation_id: str) -> dict | None:
+def get_conversation(conversation_id: str, user_id: int | None = None) -> dict | None:
     with _connect() as connection:
-        row = connection.execute(
-            "SELECT * FROM conversations WHERE id = ?",
-            (conversation_id,),
-        ).fetchone()
+        if user_id is not None:
+            row = connection.execute(
+                "SELECT * FROM conversations WHERE id = ? AND user_id = ?",
+                (conversation_id, user_id),
+            ).fetchone()
+        else:
+            row = connection.execute(
+                "SELECT * FROM conversations WHERE id = ?",
+                (conversation_id,),
+            ).fetchone()
 
     if not row:
         return None
@@ -148,18 +166,30 @@ def get_conversation(conversation_id: str) -> dict | None:
     }
 
 
-def list_conversations(limit: int = 50) -> list[dict]:
+def list_conversations(limit: int = 50, user_id: int | None = None) -> list[dict]:
     with _connect() as connection:
-        rows = connection.execute(
-            "SELECT id, title, created_at FROM conversations ORDER BY created_at DESC LIMIT ?",
-            (limit,),
-        ).fetchall()
+        if user_id is not None:
+            rows = connection.execute(
+                "SELECT id, title, created_at FROM conversations WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+                (user_id, limit),
+            ).fetchall()
+        else:
+            rows = connection.execute(
+                "SELECT id, title, created_at FROM conversations ORDER BY created_at DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
     return [dict(row) for row in rows]
 
 
-def get_conversations_count() -> int:
+def get_conversations_count(user_id: int | None = None) -> int:
     with _connect() as connection:
-        row = connection.execute("SELECT COUNT(*) FROM conversations").fetchone()
+        if user_id is not None:
+            row = connection.execute(
+                "SELECT COUNT(*) FROM conversations WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()
+        else:
+            row = connection.execute("SELECT COUNT(*) FROM conversations").fetchone()
     return row[0] if row else 0
 
 

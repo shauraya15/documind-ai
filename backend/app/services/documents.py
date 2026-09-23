@@ -36,6 +36,11 @@ def initialize_documents_table() -> None:
             );
             """
         )
+        # Migrate: add user_id column if not present
+        try:
+            connection.execute("ALTER TABLE documents ADD COLUMN user_id INTEGER")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
 
 
 def _row_to_document(row: sqlite3.Row) -> Document:
@@ -55,20 +60,32 @@ def _row_to_document(row: sqlite3.Row) -> Document:
     )
 
 
-async def list_documents() -> DocumentListResponse:
+async def list_documents(user_id: int | None = None) -> DocumentListResponse:
     with _connect() as connection:
-        rows = connection.execute(
-            "SELECT * FROM documents ORDER BY updated DESC"
-        ).fetchall()
+        if user_id is not None:
+            rows = connection.execute(
+                "SELECT * FROM documents WHERE user_id = ? ORDER BY updated DESC",
+                (user_id,),
+            ).fetchall()
+        else:
+            rows = connection.execute(
+                "SELECT * FROM documents ORDER BY updated DESC"
+            ).fetchall()
     docs = [_row_to_document(row) for row in rows]
     return DocumentListResponse(total=len(docs), documents=docs)
 
 
-def get_documents_snapshot() -> list[Document]:
+def get_documents_snapshot(user_id: int | None = None) -> list[Document]:
     with _connect() as connection:
-        rows = connection.execute(
-            "SELECT * FROM documents ORDER BY updated DESC"
-        ).fetchall()
+        if user_id is not None:
+            rows = connection.execute(
+                "SELECT * FROM documents WHERE user_id = ? ORDER BY updated DESC",
+                (user_id,),
+            ).fetchall()
+        else:
+            rows = connection.execute(
+                "SELECT * FROM documents ORDER BY updated DESC"
+            ).fetchall()
     return [_row_to_document(row) for row in rows]
 
 
@@ -80,12 +97,12 @@ def update_document_status(document_id: str, status: str) -> None:
         )
 
 
-def _insert_document(document: Document) -> Document:
+def _insert_document(document: Document, user_id: int | None = None) -> Document:
     with _connect() as connection:
         connection.execute(
             """
-            INSERT INTO documents (id, title, product, version, type, pages, status, updated, owner, coverage, sections, summary)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO documents (id, title, product, version, type, pages, status, updated, owner, coverage, sections, summary, user_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 document.id,
@@ -100,12 +117,13 @@ def _insert_document(document: Document) -> Document:
                 document.coverage,
                 json.dumps(document.sections),
                 document.summary,
+                user_id,
             ),
         )
     return document
 
 
-async def create_document(request: DocumentCreateRequest) -> Document:
+async def create_document(request: DocumentCreateRequest, user_id: int | None = None) -> Document:
     document = Document(
         id=f"doc-{uuid4().hex[:12]}",
         title=request.title,
@@ -120,7 +138,7 @@ async def create_document(request: DocumentCreateRequest) -> Document:
         sections=request.sections,
         summary=request.summary,
     )
-    return _insert_document(document)
+    return _insert_document(document, user_id=user_id)
 
 
 def count_pdf_pages(content: bytes) -> int:
@@ -143,6 +161,7 @@ async def create_uploaded_document(
     status: str,
     file_content: bytes | None = None,
     owner: str = "Azure Blob Storage",
+    user_id: int | None = None,
 ) -> Document:
     import re
     # Extract clean product name from filename (e.g., "8. Transport Layer.pdf" -> "Transport Layer")
@@ -174,7 +193,7 @@ async def create_uploaded_document(
         sections=[blob_name],
         summary=summary_text,
     )
-    return _insert_document(document)
+    return _insert_document(document, user_id=user_id)
 
 
 def reset_documents() -> None:

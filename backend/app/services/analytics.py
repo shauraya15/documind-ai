@@ -3,10 +3,10 @@ from app.services.conversations import get_conversations_count
 from app.services.documents import get_documents_snapshot
 
 
-async def get_analytics_overview() -> AnalyticsOverviewResponse:
-    documents = get_documents_snapshot()
+async def get_analytics_overview(user_id: int | None = None) -> AnalyticsOverviewResponse:
+    documents = get_documents_snapshot(user_id=user_id)
     ready = sum(document.status in {"Ready", "Indexed"} for document in documents)
-    question_count = get_conversations_count()
+    question_count = get_conversations_count(user_id=user_id)
     topics: dict[str, int] = {}
     for document in documents:
         topics[document.type] = topics.get(document.type, 0) + 1

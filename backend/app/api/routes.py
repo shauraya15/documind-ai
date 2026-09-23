@@ -54,6 +54,11 @@ def _set_session_cookie(response: Response, token: str) -> None:
     )
 
 
+def _get_current_user_id(documind_session: str | None) -> int | None:
+    user = get_user_by_session(documind_session)
+    return int(user["id"]) if user and user.get("id") else None
+
+
 @router.post("/auth/signup", response_model=UserResponse, status_code=201, tags=["auth"])
 async def signup(credentials: AuthCredentials, response: Response) -> UserResponse:
     user = create_user(credentials.email, credentials.password)
@@ -94,10 +99,10 @@ async def health() -> HealthResponse:
 
 
 @router.post("/chat", response_model=ChatResponse, tags=["assistant"])
-async def chat(request: ChatRequest) -> ChatResponse:
+async def chat(request: ChatRequest, documind_session: str | None = Cookie(default=None)) -> ChatResponse:
     try:
         result = await answer_question(request)
-        # Persist the Q&A so the history sidebar has real data
+        # Persist the Q&A so the history sidebar has real data for the logged-in user
         try:
             citations_data = [c.model_dump() for c in result.citations]
             save_conversation(
@@ -106,6 +111,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
                 result.answer,
                 citations_data,
                 parent_id=request.conversation_id,
+                user_id=_get_current_user_id(documind_session),
             )
         except Exception:
             logger.warning("Failed to save conversation history — non-fatal", exc_info=True)
@@ -122,8 +128,9 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
 
 @router.get("/conversations", response_model=ConversationListResponse, tags=["assistant"])
-async def conversations() -> ConversationListResponse:
-    items = list_conversations(limit=50)
+async def conversations(documind_session: str | None = Cookie(default=None)) -> ConversationListResponse:
+    user_id = _get_current_user_id(documind_session)
+    items = list_conversations(limit=50, user_id=user_id)
     return ConversationListResponse(
         total=len(items),
         conversations=[ConversationSummary(**item) for item in items],
@@ -131,26 +138,30 @@ async def conversations() -> ConversationListResponse:
 
 
 @router.get("/conversations/{conversation_id}", response_model=ConversationDetailResponse, tags=["assistant"])
-async def conversation_detail(conversation_id: str) -> ConversationDetailResponse:
-    conv = get_conversation(conversation_id)
+async def conversation_detail(conversation_id: str, documind_session: str | None = Cookie(default=None)) -> ConversationDetailResponse:
+    user_id = _get_current_user_id(documind_session)
+    conv = get_conversation(conversation_id, user_id=user_id)
     if conv is None:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return ConversationDetailResponse.model_validate(conv)
 
 
 @router.post("/search", response_model=SearchResponse, tags=["search"])
-async def search(request: SearchRequest) -> SearchResponse:
-    return await search_documents(request)
+async def search(request: SearchRequest, documind_session: str | None = Cookie(default=None)) -> SearchResponse:
+    user_id = _get_current_user_id(documind_session)
+    return await search_documents(request, user_id=user_id)
 
 
 @router.get("/documents", response_model=DocumentListResponse, tags=["documents"])
-async def documents() -> DocumentListResponse:
-    return await list_documents()
+async def documents(documind_session: str | None = Cookie(default=None)) -> DocumentListResponse:
+    user_id = _get_current_user_id(documind_session)
+    return await list_documents(user_id=user_id)
 
 
 @router.post("/documents", response_model=Document, status_code=201, tags=["documents"])
-async def add_document(request: DocumentCreateRequest) -> Document:
-    return await create_document(request)
+async def add_document(request: DocumentCreateRequest, documind_session: str | None = Cookie(default=None)) -> Document:
+    user_id = _get_current_user_id(documind_session)
+    return await create_document(request, user_id=user_id)
 
 
 @router.get("/documents/config", tags=["documents"])
@@ -176,7 +187,8 @@ async def upload_document(
         raise HTTPException(status_code=400, detail=str(error)) from error
     user = get_user_by_session(documind_session)
     owner = str(user["email"]) if user and user.get("email") else "Azure Blob Storage"
-    document = await create_uploaded_document(filename, result.blob_name, result.status, file_content=content, owner=owner)
+    user_id = int(user["id"]) if user and user.get("id") else None
+    document = await create_uploaded_document(filename, result.blob_name, result.status, file_content=content, owner=owner, user_id=user_id)
     background_tasks.add_task(_finish_document_indexing, document.id)
     return document
 
@@ -187,10 +199,12 @@ def _finish_document_indexing(document_id: str) -> None:
 
 
 @router.get("/knowledge/status", response_model=KnowledgeStatusResponse, tags=["knowledge"])
-async def knowledge_status() -> KnowledgeStatusResponse:
-    return await get_knowledge_status()
+async def knowledge_status(documind_session: str | None = Cookie(default=None)) -> KnowledgeStatusResponse:
+    user_id = _get_current_user_id(documind_session)
+    return await get_knowledge_status(user_id=user_id)
 
 
 @router.get("/analytics/overview", response_model=AnalyticsOverviewResponse, tags=["analytics"])
-async def analytics_overview() -> AnalyticsOverviewResponse:
-    return await get_analytics_overview()
+async def analytics_overview(documind_session: str | None = Cookie(default=None)) -> AnalyticsOverviewResponse:
+    user_id = _get_current_user_id(documind_session)
+    return await get_analytics_overview(user_id=user_id)

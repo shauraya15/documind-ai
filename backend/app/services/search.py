@@ -2,10 +2,10 @@ from app.models.schemas import SearchRequest, SearchResponse, SearchResult
 from app.services.documents import get_documents_snapshot
 
 
-async def search_documents(request: SearchRequest) -> SearchResponse:
+async def search_documents(request: SearchRequest, user_id: int | None = None) -> SearchResponse:
     terms = [term.lower() for term in request.query.split() if term.strip()]
     results: list[SearchResult] = []
-    for document in get_documents_snapshot():
+    for document in get_documents_snapshot(user_id=user_id):
         if request.product and document.product != request.product:
             continue
         if request.version and document.version != request.version:

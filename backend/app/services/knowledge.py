@@ -2,8 +2,8 @@ from app.models.schemas import KnowledgeStatusResponse
 from app.services.documents import get_documents_snapshot
 
 
-async def get_knowledge_status() -> KnowledgeStatusResponse:
-    documents = get_documents_snapshot()
+async def get_knowledge_status(user_id: int | None = None) -> KnowledgeStatusResponse:
+    documents = get_documents_snapshot(user_id=user_id)
     indexed = sum(document.status in {"Ready", "Indexed"} for document in documents)
     processing = sum(document.status in {"Processing", "Indexing"} for document in documents)
 
