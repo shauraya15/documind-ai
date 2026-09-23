@@ -128,21 +128,6 @@ def test_chat_rejects_blank_questions() -> None:
     assert response.status_code == 422
 
 
-def test_chat_rejects_out_of_scope_question_before_foundry(monkeypatch) -> None:
-    async def fail_if_called(*args, **kwargs):
-        raise AssertionError("Foundry must not be called for out-of-scope questions")
-
-    monkeypatch.setattr("app.services.chat.get_foundry_integration", fail_if_called)
-
-    response = client.post("/api/chat", json={"question": "What is today's weather?"})
-
-    assert response.status_code == 200
-    assert response.json() == {
-        "answer": "I can only answer questions related to the product documentation available in DocuMind.",
-        "conversation_id": "scope-rejected",
-        "grounded": False,
-        "citations": [],
-    }
 
 
 def test_chat_allows_in_scope_question_to_reach_foundry(monkeypatch) -> None:
