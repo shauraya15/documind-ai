@@ -34,7 +34,7 @@ class Settings:
             for origin in (
                 _env(
                     "DOCUMIND_ALLOWED_ORIGINS",
-                    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000,http://127.0.0.1:3000",
+                    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000,http://127.0.0.1:3000,https://documind-ai-two-pi.vercel.app",
                 )
                 or ""
             ).split(",")
@@ -63,8 +63,19 @@ class Settings:
         )
         or str(Path(__file__).resolve().parents[2] / "data" / "auth.db")
     )
-    auth_cookie_secure: bool = field(default_factory=lambda: (_env("DOCUMIND_AUTH_COOKIE_SECURE", "false") or "false").lower() == "true")
-    auth_cookie_samesite: str = field(default_factory=lambda: _env("DOCUMIND_AUTH_COOKIE_SAMESITE", "lax") or "lax")
+    auth_cookie_secure: bool = field(
+        default_factory=lambda: (
+            (_env("DOCUMIND_AUTH_COOKIE_SECURE", "false") or "false").lower() == "true"
+            or (_env("DOCUMIND_ENVIRONMENT", "local") or "").lower() == "production"
+        )
+    )
+    auth_cookie_samesite: str = field(
+        default_factory=lambda: _env(
+            "DOCUMIND_AUTH_COOKIE_SAMESITE",
+            "none" if (_env("DOCUMIND_ENVIRONMENT", "local") or "").lower() == "production" else "lax",
+        )
+        or "lax"
+    )
 
 
 settings = Settings()

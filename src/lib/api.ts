@@ -50,7 +50,14 @@ export type DocumentConfigResponse = {
   missing_variables: string[];
 };
 
-const apiBaseUrl = import.meta.env["VITE_API_BASE_URL"] || "http://127.0.0.1:8001";
+const apiBaseUrl =
+  import.meta.env["VITE_API_BASE_URL"] !== undefined
+    ? import.meta.env["VITE_API_BASE_URL"]
+    : typeof window !== "undefined" &&
+        window.location.hostname !== "localhost" &&
+        window.location.hostname !== "127.0.0.1"
+      ? ""
+      : "http://localhost:8001";
 
 async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
